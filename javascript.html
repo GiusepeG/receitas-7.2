@@ -1,0 +1,203 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Fetch data from the server
+  google.script.run.withSuccessHandler(onDataReady).getJsonData();
+});
+
+let allData = {};
+let currentFilter = 'All';
+
+function onDataReady(data) {
+  allData = JSON.parse(data);
+  populateFilterButtons();
+  renderTemplatePalette();
+}
+
+function populateFilterButtons() {
+  const filterButtons = document.getElementById('filter-buttons');
+  filterButtons.innerHTML = ''; // Clear existing buttons
+
+  // Add "Show All" button
+  const showAllButton = createFilterButton('All', true);
+  filterButtons.appendChild(showAllButton);
+
+  // Add buttons for each category
+  for (const category in allData) {
+    const button = createFilterButton(allData[category].abbreviation);
+    filterButtons.appendChild(button);
+  }
+}
+
+function createFilterButton(abbreviation, isActive = false) {
+  const button = document.createElement('button');
+  button.className = `flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md ${
+    isActive
+      ? 'border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400'
+      : 'border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300'
+  }`;
+  if (abbreviation === 'All') {
+    button.innerHTML = `<span class="material-symbols-outlined text-xl">filter_list_off</span>`;
+  } else {
+    button.textContent = abbreviation;
+  }
+  button.onclick = () => {
+    currentFilter = abbreviation;
+    // Update button styles
+    document.querySelectorAll('#filter-buttons button').forEach(btn => {
+        btn.className = 'flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300';
+    });
+    button.className = 'flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400';
+
+    renderTemplatePalette();
+  };
+  return button;
+}
+
+function renderTemplatePalette() {
+  const templatePalette = document.getElementById('template-palette');
+  templatePalette.innerHTML = '';
+  const searchInput = document.getElementById('search-input').value.toLowerCase();
+
+  for (const category in allData) {
+    if (currentFilter === 'All' || allData[category].abbreviation === currentFilter) {
+      allData[category].items.forEach(item => {
+        if (item.title.toLowerCase().includes(searchInput) || item.tags.some(tag => tag.toLowerCase().includes(searchInput))) {
+          const listItem = document.createElement('li');
+          const link = document.createElement('a');
+          link.className = 'flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700';
+          link.href = '#';
+
+          const leftDiv = document.createElement('div');
+          leftDiv.className = 'flex items-center';
+
+          const insertButton = document.createElement('button');
+          insertButton.className = 'text-gray-400 dark:text-gray-500 mr-3';
+          insertButton.innerHTML = `<span class="material-symbols-outlined">text_select_start</span>`;
+          insertButton.addEventListener('click', () => insertToDocument(item.content));
+
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = item.title;
+
+          leftDiv.appendChild(insertButton);
+          leftDiv.appendChild(titleSpan);
+
+          const stageButton = document.createElement('button');
+          stageButton.className = 'text-gray-400 dark:text-gray-500';
+          stageButton.innerHTML = `<span class="material-symbols-outlined">arrow_cool_down</span>`;
+          stageButton.addEventListener('click', () => addToStagePalette(item.title, item.content));
+
+          link.appendChild(leftDiv);
+          link.appendChild(stageButton);
+          listItem.appendChild(link);
+          templatePalette.appendChild(listItem);
+        }
+      });
+    }
+  }
+}
+
+function addToStagePalette(title, content) {
+  const stagePalette = document.getElementById('stage-palette');
+  const listItem = document.createElement('li');
+  listItem.className = 'flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700';
+  listItem.dataset.content = content;
+
+  const titleSpan = document.createElement('span');
+  titleSpan.textContent = title;
+
+  const deleteButton = document.createElement('button');
+  deleteButton.className = 'text-red-500 dark:text-red-400 text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-100 dark:hover:bg-red-900/50';
+  deleteButton.innerHTML = `<span class="material-symbols-outlined text-base">delete</span>`;
+  deleteButton.addEventListener('click', () => listItem.remove());
+
+  listItem.appendChild(titleSpan);
+  listItem.appendChild(deleteButton);
+  stagePalette.appendChild(listItem);
+}
+
+
+function insertToDocument(content) {
+    google.script.run.insertText(content);
+}
+
+document.getElementById('search-input').addEventListener('input', renderTemplatePalette);
+
+document.getElementById('clear-search-button').addEventListener('click', () => {
+    document.getElementById('search-input').value = '';
+    renderTemplatePalette();
+});
+
+
+document.getElementById('insert-all-button').addEventListener('click', () => {
+    const stagePalette = document.getElementById('stage-palette');
+    let combinedContent = '';
+    stagePalette.querySelectorAll('li').forEach(item => {
+        combinedContent += item.dataset.content + '\\n\\n';
+    });
+
+    if(combinedContent) {
+        insertToDocument(combinedContent);
+    }
+});
+
+
+// Initialize SortableJS for the stage palette
+new Sortable(document.getElementById('stage-palette'), {
+  animation: 150,
+  ghostClass: 'blue-background-class'
+});
+
+// Mock patient data - in a real application, this would be fetched from a server
+const patients = [
+  "MARIA DA SILVA",
+  "JOÃO PEREIRA",
+  "ANA COSTA",
+  "PEDRO SANTOS",
+  "SOFIA ALMEIDA"
+];
+
+const patientModal = document.getElementById('patient-modal');
+const patientSelectionButton = document.getElementById('patient-selection-button');
+const closePatientModalButton = document.getElementById('close-patient-modal');
+const patientList = document.getElementById('patient-list');
+const updatePatientButton = document.getElementById('update-patient-button');
+
+// Populate patient list
+patients.forEach(patient => {
+  const listItem = document.createElement('li');
+  listItem.className = 'px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md';
+  listItem.textContent = patient;
+  listItem.onclick = () => {
+    patientSelectionButton.querySelector('span').textContent = patient;
+    patientModal.classList.add('hidden');
+  };
+  patientList.appendChild(listItem);
+});
+
+// Show/hide modal
+patientSelectionButton.addEventListener('click', () => {
+  patientModal.classList.remove('hidden');
+});
+
+closePatientModalButton.addEventListener('click', () => {
+  patientModal.classList.add('hidden');
+});
+
+// Close modal when clicking outside of it
+patientModal.addEventListener('click', (e) => {
+    if (e.target === patientModal) {
+        patientModal.classList.add('hidden');
+    }
+});
+
+updatePatientButton.addEventListener('click', () => {
+  const selectedPatient = patientSelectionButton.querySelector('span').textContent;
+  // In a real application, this would trigger an update based on the selected patient.
+  // For now, we can just log it to the console.
+  console.log('Selected patient:', selectedPatient);
+  google.script.run.withSuccessHandler(() => {
+    // maybe show a notification
+  }).updatePatient(selectedPatient);
+});
+
+</script>

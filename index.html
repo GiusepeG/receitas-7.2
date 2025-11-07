@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Mobile Sidebar</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <?!= include('stylesheet'); ?>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-display flex justify-center p-4">
+<div class="w-full max-w-sm h-[800px] flex flex-col bg-background-light dark:bg-background-dark shadow-lg rounded-xl overflow-hidden">
+    <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <h1 class="text-lg font-medium text-gray-800 dark:text-gray-200">Sidebar</h1>
+        <button class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </header>
+    <main class="flex-grow p-4 overflow-y-auto">
+        <div class="space-y-4">
+            <div id="filter-buttons" class="flex items-center space-x-1 overflow-x-auto pb-2">
+                <!-- Filter buttons will be dynamically inserted here -->
+            </div>
+            <div class="relative">
+                <input id="search-input" class="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary focus:border-primary placeholder-gray-400 dark:placeholder-gray-500" type="text" placeholder="Search templates..."/>
+                <button id="clear-search-button" class="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+            <div class="flex space-x-2">
+                <div class="w-full h-48 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800/50 overflow-y-auto custom-scrollbar">
+                    <ul id="template-palette" class="text-gray-700 dark:text-gray-300">
+                        <!-- Template items will be dynamically inserted here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0">
+        <div class="space-y-3">
+            <div class="flex items-center space-x-2">
+                <div class="relative w-[90%]">
+                    <button id="patient-selection-button" class="w-full text-left px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 flex items-center justify-between">
+                        <span>MARIA DA SILVA</span>
+                        <span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+                    </button>
+                </div>
+                <div class="w-[10%]">
+                    <button id="update-patient-button" class="w-full h-12 bg-yellow-400 dark:bg-yellow-500 text-yellow-900 dark:text-yellow-900 rounded-md flex items-center justify-center hover:bg-yellow-500 dark:hover:bg-yellow-600 transition-colors">
+                        <span class="material-symbols-outlined">update</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-stretch space-x-2">
+                <div class="w-[90%] border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 overflow-hidden">
+                    <ul id="stage-palette" class="text-sm text-gray-800 dark:text-gray-200">
+                        <!-- Stage items will be dynamically inserted here -->
+                    </ul>
+                </div>
+                <div class="w-[10%]">
+                    <button id="insert-all-button" class="w-full h-full bg-green-500 dark:bg-green-600 text-white rounded-md flex items-center justify-center hover:bg-green-600 dark:hover:bg-green-700 transition-colors text-sm font-medium">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button class="flex-1 bg-primary text-white rounded-md h-12 flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                    <span class="material-symbols-outlined">add_circle</span>
+                </button>
+                <button class="flex-1 bg-red-500 text-white rounded-md h-12 flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                    <span class="material-symbols-outlined">brush</span>
+                </button>
+                <button class="flex-1 bg-purple-600 text-white rounded-md h-12 flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                    <span class="material-symbols-outlined">auto_fix_high</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Patient Selection Modal -->
+<div id="patient-modal" class="hidden absolute inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-sm">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+      <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">Select Patient</h3>
+      <button id="close-patient-modal" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <ul id="patient-list" class="p-2 max-h-60 overflow-y-auto custom-scrollbar">
+      <!-- Patient list will be populated here -->
+    </ul>
+  </div>
+</div>
+
+<?!= include('javascript'); ?>
+</body>
+</html>
