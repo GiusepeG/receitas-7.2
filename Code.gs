@@ -88,3 +88,14 @@ function updatePatient(patientName) {
   // For now, we'll just log the patient's name to the console.
   console.log('Selected patient:', patientName);
 }
+
+/**
+ * Includes the content of another HTML file.
+ * This is a common utility function for templated HTML in Google Apps Script.
+ *
+ * @param {string} filename The name of the file to include.
+ * @return {string} The content of the file.
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
