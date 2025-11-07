@@ -14,8 +14,8 @@
  *     running in, inspect e.authMode.
  */
 function onOpen(e) {
-  DocumentApp.getUi().createAddonMenu()
-      .addItem('Content Assistant', 'showSidebar')
+  DocumentApp.getUi().createMenu('Content Assistant')
+      .addItem('Show Sidebar', 'showSidebar')
       .addToUi();
 }
 
@@ -35,10 +35,19 @@ function onInstall(e) {
  * Opens a sidebar in the document.
  */
 function showSidebar() {
-  var ui = HtmlService.createTemplateFromFile('index')
-      .evaluate()
-      .setTitle('Content Assistant');
-  DocumentApp.getUi().showSidebar(ui);
+  console.log('🎨 Etapa 3: Criação da Sidebar');
+  const html = HtmlService.createTemplateFromFile('index');
+  const sidebarData = getJsonData(); // Fetch the data
+
+  html.preloadedData = sidebarData; // Pass the already obtained data
+
+  const sidebar = html.evaluate()
+    .setSandboxMode(HtmlService.SandboxMode.IFRAME) // Using IFRAME for better security and compatibility
+    .setTitle('Content Assistant')
+    .setWidth(300);
+
+  console.log('✅ Sidebar criada');
+  DocumentApp.getUi().showSidebar(sidebar);
 }
 
 /**

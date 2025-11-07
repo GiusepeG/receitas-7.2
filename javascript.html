@@ -1,7 +1,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Fetch data from the server
-  google.script.run.withSuccessHandler(onDataReady).getJsonData();
+  // Use the preloaded data
+  onDataReady(preloadedData);
 });
 
 let allData = {};
