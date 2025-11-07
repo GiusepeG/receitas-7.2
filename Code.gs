@@ -39,7 +39,7 @@ function showSidebar() {
   const html = HtmlService.createTemplateFromFile('index');
   const sidebarData = getJsonData(); // Fetch the data
 
-  html.preloadedData = sidebarData; // Pass the already obtained data
+  html.preloadedData = JSON.stringify(sidebarData); // Pass the already obtained data
 
   const sidebar = html.evaluate()
     .setSandboxMode(HtmlService.SandboxMode.IFRAME) // Using IFRAME for better security and compatibility
@@ -56,10 +56,16 @@ function showSidebar() {
  * @return {string} The content of the JSON file.
  */
 function getJsonData() {
-  var fileId = '1HM4CdqFY40hl7r1gdwrxkJqfhUEqrL4t';
-  var file = DriveApp.getFileById(fileId);
-  var content = file.getBlob().getDataAsString();
-  return content;
+  const fileId = '1HM4CdqFY40hl7r1gdwrxkJqfhUEqrL4t';
+  try {
+    const file = DriveApp.getFileById(fileId);
+    const jsonString = file.getBlob().getDataAsString();
+    const data = JSON.parse(jsonString);
+    return data;
+  } catch (e) {
+    Logger.log('Error reading or parsing JSON file: ' + e);
+    return { error: 'Failed to load data: ' + e.message };
+  }
 }
 
 /**
