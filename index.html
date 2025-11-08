@@ -9,11 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <?!= include('stylesheet'); ?>
+    <?!= include('itemsData.json.html'); ?>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 font-display flex justify-center p-4">
-<script>
-    var preloadedData = '<?!= preloadedData ?>';
-</script>
 <div class="w-full max-w-sm h-[800px] flex flex-col bg-background-light dark:bg-background-dark shadow-lg rounded-xl overflow-hidden">
     <header class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <h1 class="text-lg font-medium text-gray-800 dark:text-gray-200">Sidebar</h1>

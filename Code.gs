@@ -37,37 +37,11 @@ function onInstall(e) {
  * Opens a sidebar in the document.
  */
 function showSidebar() {
-  console.log('🎨 Etapa 3: Criação da Sidebar');
-  const html = HtmlService.createTemplateFromFile('index');
-  const sidebarData = getJsonData(); // Fetch the data
-
-  html.preloadedData = JSON.stringify(sidebarData); // Pass the already obtained data
-
-  const sidebar = html.evaluate()
-    .setSandboxMode(HtmlService.SandboxMode.IFRAME) // Using IFRAME for better security and compatibility
+  const html = HtmlService.createTemplateFromFile('index').evaluate()
+    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
     .setTitle('Content Assistant')
     .setWidth(300);
-
-  console.log('✅ Sidebar criada');
-  DocumentApp.getUi().showSidebar(sidebar);
-}
-
-/**
- * Gets the content of the JSON file from Google Drive.
- *
- * @return {string} The content of the JSON file.
- */
-function getJsonData() {
-  const fileId = '1HM4CdqFY40hl7r1gdwrxkJqfhUEqrL4t';
-  try {
-    const file = DriveApp.getFileById(fileId);
-    const jsonString = file.getBlob().getDataAsString();
-    const data = JSON.parse(jsonString);
-    return data;
-  } catch (e) {
-    Logger.log('Error reading or parsing JSON file: ' + e);
-    return { error: 'Failed to load data: ' + e.message };
-  }
+  DocumentApp.getUi().showSidebar(html);
 }
 
 /**
@@ -114,7 +88,7 @@ function include(filename) {
  */
 function updateJsonFromSheet() {
   const sheetId = 'YOUR_GOOGLE_SHEET_ID_HERE'; // Replace with your actual Google Sheet ID
-  const jsonFileId = '1HM4CdqFY40hl7r1gdwrxkJqfhUEqrL4t';
+  const htmlFileId = 'YOUR_HTML_CACHE_FILE_ID_HERE'; // Replace with the ID of itemsData.json.html
 
   try {
     const spreadsheet = SpreadsheetApp.openById(sheetId);
@@ -144,13 +118,14 @@ function updateJsonFromSheet() {
     });
 
     const jsonString = JSON.stringify(allItems, null, 2);
-    const jsonFile = DriveApp.getFileById(jsonFileId);
-    jsonFile.setContent(jsonString);
+    const htmlContent = `<script>\n  var items = ${jsonString};\n</script>`;
+    const htmlFile = DriveApp.getFileById(htmlFileId);
+    htmlFile.setContent(htmlContent);
 
-    DocumentApp.getUi().alert('Successfully updated the JSON cache from the Google Sheet.');
+    DocumentApp.getUi().alert('Successfully updated the HTML cache from the Google Sheet.');
 
   } catch (e) {
-    Logger.log('Error updating JSON from Sheet: ' + e);
-    DocumentApp.getUi().alert('Failed to update the JSON cache. Please check the logs for details.');
+    Logger.log('Error updating HTML cache from Sheet: ' + e);
+    DocumentApp.getUi().alert('Failed to update the HTML cache. Please check the logs for details.');
   }
 }

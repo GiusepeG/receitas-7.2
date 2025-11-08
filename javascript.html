@@ -1,23 +1,18 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Use the preloaded data
-  onDataReady(preloadedData);
-});
-
-let allData = {};
-let currentFilter = 'All';
-
-function onDataReady(dataString) {
-  allData = JSON.parse(dataString);
-  if (allData.error) {
-    // Handle the case where the JSON data couldn't be loaded
+  // The 'items' variable is now globally available from itemsData.json.html
+  allData = items;
+  if (!allData || allData.length === 0) {
+    // Handle the case where the data is empty or not loaded
     const templatePalette = document.getElementById('template-palette');
-    templatePalette.innerHTML = `<li class="p-4 text-red-500">${allData.error}</li>`;
-    return;
+    templatePalette.innerHTML = `<li class="p-4 text-gray-500">No items found. Run 'Update Cache from Sheet' to load data.</li>`;
   }
   populateFilterButtons();
   renderTemplatePalette();
-}
+});
+
+let allData = [];
+let currentFilter = 'All';
 
 function populateFilterButtons() {
   const filterButtons = document.getElementById('filter-buttons');
