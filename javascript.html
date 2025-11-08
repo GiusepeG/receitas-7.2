@@ -7,8 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
 let allData = {};
 let currentFilter = 'All';
 
-function onDataReady(data) {
-  allData = JSON.parse(data);
+function onDataReady(dataString) {
+  allData = JSON.parse(dataString);
+  if (allData.error) {
+    // Handle the case where the JSON data couldn't be loaded
+    const templatePalette = document.getElementById('template-palette');
+    templatePalette.innerHTML = `<li class="p-4 text-red-500">${allData.error}</li>`;
+    return;
+  }
   populateFilterButtons();
   renderTemplatePalette();
 }
@@ -21,79 +27,92 @@ function populateFilterButtons() {
   const showAllButton = createFilterButton('All', true);
   filterButtons.appendChild(showAllButton);
 
-  // Add buttons for each category
-  for (const category in allData) {
-    const button = createFilterButton(allData[category].abbreviation);
+  // Get unique tab names for filter buttons
+  const tabs = [...new Set(allData.map(item => item.tab))];
+
+  tabs.forEach(tab => {
+    const button = createFilterButton(tab);
     filterButtons.appendChild(button);
-  }
+  });
 }
 
-function createFilterButton(abbreviation, isActive = false) {
+function createFilterButton(tab, isActive = false) {
   const button = document.createElement('button');
-  button.className = `flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md ${
+  button.className = `flex-shrink-0 h-8 px-3 flex items-center justify-center text-sm font-medium border rounded-md ${
     isActive
       ? 'border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400'
       : 'border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300'
   }`;
-  if (abbreviation === 'All') {
+  if (tab === 'All') {
     button.innerHTML = `<span class="material-symbols-outlined text-xl">filter_list_off</span>`;
+    button.classList.add('w-8'); // Keep the icon button square
   } else {
-    button.textContent = abbreviation;
+    button.textContent = tab;
   }
   button.onclick = () => {
-    currentFilter = abbreviation;
+    currentFilter = tab;
     // Update button styles
     document.querySelectorAll('#filter-buttons button').forEach(btn => {
-        btn.className = 'flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300';
+        btn.className = btn.className.replace('border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400', 'border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300');
     });
-    button.className = 'flex-shrink-0 w-8 h-8 flex items-center justify-center text-sm font-medium border rounded-md border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400';
+    button.className = button.className.replace('border-gray-400 text-gray-600 bg-gray-100 dark:bg-gray-700 dark:border-gray-500 dark:text-gray-300', 'border-blue-500 text-blue-500 bg-blue-50 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-400');
 
     renderTemplatePalette();
   };
   return button;
 }
 
+
 function renderTemplatePalette() {
   const templatePalette = document.getElementById('template-palette');
   templatePalette.innerHTML = '';
   const searchInput = document.getElementById('search-input').value.toLowerCase();
 
-  for (const category in allData) {
-    if (currentFilter === 'All' || allData[category].abbreviation === currentFilter) {
-      allData[category].items.forEach(item => {
-        if (item.title.toLowerCase().includes(searchInput) || item.tags.some(tag => tag.toLowerCase().includes(searchInput))) {
-          const listItem = document.createElement('li');
-          const link = document.createElement('a');
-          link.className = 'flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700';
-          link.href = '#';
+  const filteredData = allData.filter(item => {
+    const matchesFilter = currentFilter === 'All' || item.tab === currentFilter;
+    const matchesSearch = item.title.toLowerCase().includes(searchInput) ||
+                          (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchInput)));
+    return matchesFilter && matchesSearch;
+  });
 
-          const leftDiv = document.createElement('div');
-          leftDiv.className = 'flex items-center';
+  filteredData.forEach(item => {
+    const listItem = document.createElement('li');
+    const link = document.createElement('a');
+    link.className = 'flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700';
+    link.href = '#';
 
-          const insertButton = document.createElement('button');
-          insertButton.className = 'text-gray-400 dark:text-gray-500 mr-3';
-          insertButton.innerHTML = `<span class="material-symbols-outlined">text_select_start</span>`;
-          insertButton.addEventListener('click', () => insertToDocument(item.content));
+    const leftDiv = document.createElement('div');
+    leftDiv.className = 'flex items-center';
 
-          const titleSpan = document.createElement('span');
-          titleSpan.textContent = item.title;
+    const insertButton = document.createElement('button');
+    insertButton.className = 'text-gray-400 dark:text-gray-500 mr-3';
+    insertButton.innerHTML = `<span class="material-symbols-outlined">text_select_start</span>`;
+    insertButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      insertToDocument(item.content);
+    });
 
-          leftDiv.appendChild(insertButton);
-          leftDiv.appendChild(titleSpan);
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = item.title;
 
-          const stageButton = document.createElement('button');
-          stageButton.className = 'text-gray-400 dark:text-gray-500';
-          stageButton.innerHTML = `<span class="material-symbols-outlined">arrow_cool_down</span>`;
-          stageButton.addEventListener('click', () => addToStagePalette(item.title, item.content));
+    leftDiv.appendChild(insertButton);
+    leftDiv.appendChild(titleSpan);
 
-          link.appendChild(leftDiv);
-          link.appendChild(stageButton);
-          listItem.appendChild(link);
-          templatePalette.appendChild(listItem);
-        }
-      });
-    }
-  }
+    const stageButton = document.createElement('button');
+    stageButton.className = 'text-gray-400 dark:text-gray-500';
+    stageButton.innerHTML = `<span class="material-symbols-outlined">arrow_cool_down</span>`;
+    stageButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      addToStagePalette(item.title, item.content);
+    });
+
+    link.appendChild(leftDiv);
+    link.appendChild(stageButton);
+    listItem.appendChild(link);
+    templatePalette.appendChild(listItem);
+  });
 }
 
 function addToStagePalette(title, content) {
